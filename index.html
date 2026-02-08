@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MochiMind.ai - Serious Retention. Surprisingly Fun.</title>
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="logo.png">
+    
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mochi: {
+                            bg: '#fdfaec',
+                            light: '#f7b4a9',
+                            dark: '#ec7469',
+                            text: '#4a4a4a',
+                            white: '#ffffff'
+                        }
+                    },
+                    fontFamily: {
+                        heading: ['Fredoka', 'sans-serif'],
+                        body: ['Nunito', 'sans-serif'],
+                    },
+                    animation: {
+                        'bounce-slow': 'bounce 3s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'progress-fill': 'fillBar 4s linear forwards',
+                        'pop-in': 'popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        fillBar: {
+                            '0%': { width: '0%' },
+                            '100%': { width: '25%' }
+                        },
+                        popIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.5)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #fdfaec;
+            color: #4a4a4a;
+            font-family: 'Nunito', sans-serif;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 2px solid white;
+            box-shadow: 0 8px 32px 0 rgba(236, 116, 105, 0.15);
+        }
+
+        .btn-primary {
+            background-color: #ec7469;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px 0 rgba(236, 116, 105, 0.39);
+        }
+
+        .btn-primary:hover {
+            background-color: #ff8a80;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(236, 116, 105, 0.5);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: #ec7469;
+            border: 2px solid #ec7469;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background-color: #fef2f2;
+            transform: translateY(-2px);
+        }
+
+        
+        .blob {
+            position: absolute;
+            filter: blur(40px);
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        .feature-card {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: #f7b4a9;
+            box-shadow: 0 20px 40px -15px rgba(236, 116, 105, 0.2);
+        }
+
+        
+        .device-mockup {
+            border: 8px solid #ec7469;
+            border-radius: 2rem;
+            background: white;
+            position: relative;
+        }
+
+        
+        #feature-modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        #feature-modal.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        #feature-modal:not(.hidden) {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        
+        .modal-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: #ec7469 transparent;
+        }
+        .modal-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .modal-scroll::-webkit-scrollbar-track {
+            background: rgba(247, 180, 169, 0.15);
+            border-radius: 9999px;
+            margin: 12px 2px;
+        }
+        .modal-scroll::-webkit-scrollbar-thumb {
+            background: #ec7469;
+            border-radius: 9999px;
+            min-height: 48px;
+        }
+        .modal-scroll::-webkit-scrollbar-thumb:hover {
+            background: #e05a4e;
+        }
+        .modal-scroll::-webkit-scrollbar-thumb:active {
+            background: #d44d42;
+        }
+
+        
+        .sim-step { display: none; }
+        .sim-step.active { display: flex; animation: popIn 0.5s forwards; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col relative">
+
+    
+    <div class="blob bg-mochi-light w-96 h-96 rounded-full top-0 left-0 -translate-x-1/2 -translate-y-1/2 mix-blend-multiply animate-float"></div>
+    <div class="blob bg-yellow-100 w-96 h-96 rounded-full top-40 right-0 translate-x-1/3 mix-blend-multiply animate-float" style="animation-delay: 2s;"></div>
+    <div class="blob bg-pink-100 w-80 h-80 rounded-full bottom-0 left-20 translate-y-1/3 mix-blend-multiply animate-float" style="animation-delay: 4s;"></div>
+
+    
+    <nav class="w-full px-6 py-4 flex justify-between items-center z-50">
+        <div onclick="window.open('index.html', '_self')" style="cursor: pointer;" class="flex items-center gap-3">
+            <div class="w-12 h-12px flex items-center justify-center">
+                 <img src="logo.png" alt="MochiMind Logo" class="w-full h-full object-contain">
+            </div>
+            <span class="text-2xl font-heading font-bold text-mochi-dark tracking-wide">MochiMind.ai</span>
+        </div>
+        <div id="auth-container">
+            
+            <button onclick="handleGoogleLogin()" class="btn-primary px-6 py-2 rounded-full font-bold flex items-center gap-2">
+                <i data-lucide="log-in" class="w-4 h-4"></i>
+                Sign In
+            </button>
+        </div>
+    </nav>
+
+    
+    <main class="flex-grow container mx-auto px-6 py-12 flex flex-col md:flex-row items-center gap-12 relative z-10">
+        <div class="flex-1 space-y-8 text-center md:text-left">
+            <div class="inline-block px-4 py-2 bg-white rounded-full text-mochi-dark font-bold text-sm shadow-sm border border-mochi-light mb-2 animate-bounce-slow">
+                ✨ Stop Passive Learning
+            </div>
+            <h1 class="text-5xl md:text-7xl font-bold leading-tight text-gray-800">
+                Serious Retention. <br>
+                <span class="text-mochi-dark">Surprisingly Fun.</span>
+            </h1>
+            <p class="text-xl text-gray-600 leading-relaxed max-w-lg mx-auto md:mx-0">
+                You watch the lectures, but the content slips away. MochiMind fights the "forgetting curve" by forcing you to <span class="font-bold text-mochi-dark">lock-in</span>. Interactive, gamified, and effective.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <button onclick="handleGoogleLogin()" class="btn-primary px-8 py-4 rounded-full font-bold text-lg flex items-center justify-center gap-3 shadow-xl">
+                    <i data-lucide="brain-circuit" class="w-6 h-6"></i>
+                    Start Learning
+                </button>
+                <button onclick="document.getElementById('features').scrollIntoView({behavior: 'smooth'})" class="btn-secondary px-8 py-4 rounded-full font-bold text-lg">
+                    How it Works
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 w-full max-w-lg relative">
+            
+            <div class="relative w-full aspect-square">
+                <div class="absolute inset-0 bg-mochi-dark rounded-full opacity-10 animate-pulse-slow"></div>
+                <div class="absolute inset-8 bg-white rounded-[3rem] shadow-2xl flex flex-col items-center justify-center p-8 border-4 border-mochi-light rotate-2 hover:rotate-0 transition-all duration-500">
+                    <div class="w-24 h-24 bg-mochi-light rounded-full mb-6 flex items-center justify-center relative">
+                         
+                         <div class="flex gap-4">
+                             <div class="w-3 h-3 bg-white rounded-full"></div>
+                             <div class="w-3 h-3 bg-white rounded-full"></div>
+                         </div>
+                         <div class="absolute bottom-6 w-4 h-2 bg-white rounded-b-full opacity-80"></div>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-xl h-3 mb-3 overflow-hidden">
+                        <div class="bg-mochi-dark h-full w-[25%]"></div>
+                    </div>
+                    <p class="text-gray-500 text-sm font-bold mb-4">Retention: 25% (Locked In)</p>
+                    
+                    <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200 w-full text-left">
+                        <p class="text-xs font-bold text-yellow-700 uppercase mb-1">Warning</p>
+                        <p class="text-sm text-gray-700">"Hey! Explain this concept before scrolling further."</p>
+                    </div>
+                </div>
+                
+                
+                <div class="absolute top-0 right-0 bg-white p-3 rounded-2xl shadow-lg animate-float" style="animation-delay: 1s;">
+                    <i data-lucide="clock" class="text-mochi-dark w-6 h-6"></i>
+                </div>
+                <div class="absolute bottom-10 left-0 bg-white p-3 rounded-2xl shadow-lg animate-float" style="animation-delay: 2.5s;">
+                    <i data-lucide="book-open" class="text-mochi-dark w-6 h-6"></i>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    
+    <section class="py-20 bg-white bg-opacity-60 relative z-10">
+        <div class="container mx-auto px-6">
+            <div class="glass-panel rounded-3xl p-10 md:p-16 max-w-4xl mx-auto text-center relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 bg-mochi-dark"></div>
+                
+                <i data-lucide="quote" class="w-12 h-12 text-mochi-light mx-auto mb-6 opacity-50"></i>
+                
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-6">
+                    "Reliance on AI-summaries and passive consumption leads to a distinct <span class="text-mochi-dark underline decoration-wavy">cognitive decline</span> in memory formation."
+                </h2>
+                <p class="text-gray-500 font-semibold mb-8">- MIT Media Lab</p>
+                
+                <p class="text-lg text-gray-700 leading-relaxed max-w-2xl mx-auto">
+                    We love AI, but it's making us lazy learners. 
+                    MochiMind doesn't just summarize things for you, it uses AI to challenge you, and make sure you actually understand the material before you move on.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    
+    <section id="features" class="py-20 container mx-auto px-6 relative z-10">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-800 mb-4">Three Ways to Win</h2>
+            <p class="text-gray-600 max-w-xl mx-auto">Click on a card to see how it works!</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <div onclick="openFeatureModal('lockin')" class="feature-card bg-white rounded-[2rem] p-8 shadow-sm">
+                <div class="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mb-6 text-red-500">
+                    <i data-lucide="lock" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">Lock-in Mode</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Stop mindlessly scrolling PDFs or Video lectures. We pause your content at intervals. To proceed, you must clear Flashcards, explain concepts to AI (Feynman technique), and pass a Quiz. It also includes Head Tracking AI, Tab Switch Detection to prevent distractions, and a built-in Pomodoro timer.
+                </p>
+                <p class="text-sm text-mochi-dark font-bold mt-4 flex items-center gap-1">See Demo <i data-lucide="arrow-right" class="w-4 h-4"></i></p>
+            </div>
+
+            
+            <div onclick="openFeatureModal('spaced')" class="feature-card bg-white rounded-[2rem] p-8 shadow-sm">
+                <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mb-6 text-blue-500">
+                    <i data-lucide="repeat" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">Spaced Repetition</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Uses the proven 2-3-5-7 day spaced repetition method to send you smart Chrome notification reminders exactly when you're about to forget. It actively and reliably pings you to review past topics, follow optimal memory science, and strengthen long-term memory retention.
+                </p>
+                <p class="text-sm text-mochi-dark font-bold mt-4 flex items-center gap-1">See Demo <i data-lucide="arrow-right" class="w-4 h-4"></i></p>
+            </div>
+
+            
+            <div onclick="openFeatureModal('zone')" class="feature-card bg-white rounded-[2rem] p-8 shadow-sm">
+                <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mb-6 text-purple-500">
+                    <i data-lucide="gamepad-2" class="w-8 h-8"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">Memorization Zone</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    Not just fun, seriously powerful. Transform raw content into structured Notes, Presentation Slides, Mind Maps, Cheat Sheets, Simulations, or even custom Songs using interactive learning formats. It uses proven multi-modal techniques to push your brain to retain information longer.
+                </p>
+                <p class="text-sm text-mochi-dark font-bold mt-4 flex items-center gap-1">See Demo <i data-lucide="arrow-right" class="w-4 h-4"></i></p>
+            </div>
+        </div>
+    </section>
+
+    
+    <div id="feature-modal" class="fixed inset-0 z-[100] flex items-center justify-center px-4 hidden">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeFeatureModal()"></div>
+        <div class="modal-scroll bg-white rounded-[2.5rem] p-6 md:p-10 max-w-3xl w-full relative z-10 shadow-2xl border-4 border-mochi-light max-h-[90vh] overflow-y-auto">
+            <button onclick="closeFeatureModal()" class="absolute top-6 right-6 p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
+                <i data-lucide="x" class="w-6 h-6 text-gray-500"></i>
+            </button>
+            
+            <div id="modal-content">
+                
+            </div>
+        </div>
+    </div>
+
+    
+    <footer class="bg-white py-12 border-t border-mochi-light/30 mt-12 relative z-10">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div style="cursor: pointer;" onclick="window.open('index.html', '_self')" class="flex items-center gap-2">
+                 <div class="w-12 h-12 flex items-center justify-center">
+                    <img src="logo.png" alt="MochiMind Logo" class="w-full h-full object-contain">
+                </div>
+                <span class="font-heading font-bold text-gray-700">MochiMind.ai</span>
+            </div>
+            <p class="text-gray-400 text-sm">© MochiMind. Serious Retention. Surprisingly Fun.</p>
+            <div class="flex gap-4">
+                <a href="contact.html" class="flex items-center gap-2 text-mochi-dark hover:text-mochi-light transition-colors font-semibold">
+                    <i data-lucide="mail" class="w-5 h-5"></i>
+                    <span>Contact Us</span>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+REMOVED
+        };
+
+       
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const provider = new GoogleAuthProvider();
+
+        const authContainer = document.getElementById('auth-container');
+
+        window.handleGoogleLogin = async () => {
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                const sanitizedEmail = user.email.replace(/\./g, ',');
+                const dbRef = ref(db);
+                get(child(dbRef, `users/${sanitizedEmail}`)).then((snapshot) => {
+                    if (!snapshot.exists()) {
+                        set(ref(db, 'users/' + sanitizedEmail + '/profile'), {
+                            name: user.displayName,
+                            email: user.email,
+                            photo: user.photoURL,
+                            joinedAt: new Date().toISOString()
+                        });
+                    }
+                    alert(`Welcome to MochiMind, ${user.displayName}! Ready to lock-in?`);
+                }).catch((error) => {
+                    console.error("Database error:", error);
+                });
+            } catch (error) {
+                console.error("Login Failed:", error.message);
+            }
+        };
+
+        window.handleLogout = () => {
+            signOut(auth).then(() => {
+                location.reload();
+            }).catch((error) => {
+                console.error("Logout error", error);
+            });
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                authContainer.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <img src="${user.photoURL}" alt="Profile" class="w-8 h-8 rounded-full border-2 border-mochi-dark">
+                        <button onclick="handleLogout()" class="text-sm font-bold text-gray-600 hover:text-mochi-dark">Logout</button>
+                    </div>
+                `;
+                const ctaButtons = document.querySelectorAll('button[onclick="handleGoogleLogin()"]');
+                ctaButtons.forEach(btn => {
+                    btn.innerHTML = `<i data-lucide="layout-dashboard" class="w-5 h-5"></i> Go to Dashboard`;
+                    btn.onclick = () => window.open("app.html", "_self")
+                });
+            } else {
+                authContainer.innerHTML = `
+                     <button onclick="handleGoogleLogin()" class="btn-primary px-6 py-2 rounded-full font-bold flex items-center gap-2 text-sm shadow-md">
+                        <i data-lucide="log-in" class="w-4 h-4"></i>
+                        Sign In
+                    </button>
+                `;
+            }
+            lucide.createIcons();
+        });
+
+        lucide.createIcons();
+    </script>
+
+    
+    <script>
+        const modal = document.getElementById('feature-modal');
+        const modalContent = document.getElementById('modal-content');
+        let simulationInterval;
+
+        window.openFeatureModal = (feature) => {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            if (feature === 'lockin') {
+                renderLockInSimulation();
+            } else if (feature === 'spaced') {
+                renderSpacedSimulation();
+            } else if (feature === 'zone') {
+                renderZoneSimulation();
+            }
+            lucide.createIcons();
+        };
+
+        window.closeFeatureModal = () => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+           
+            if (simulationInterval) clearInterval(simulationInterval);
+        };
+
+        function renderLockInSimulation() {
+            modalContent.innerHTML = `
+                <div class="text-center mb-6">
+                    <h3 class="text-3xl font-bold text-mochi-dark mb-2">Lock-in Mode Demo</h3>
+                    <p class="text-gray-500">Experience Head Tracking, Pomodoro, and Active Recall blocks.</p>
+                </div>
+                
+                <div class="flex flex-col gap-4 max-w-xl mx-auto">
+                    
+                    <div class="flex justify-between items-center bg-gray-100 p-2 rounded-lg">
+                        <div class="flex gap-2">
+                             <span class="bg-white px-2 py-1 rounded shadow text-xs font-bold text-gray-700 flex items-center gap-1"><i data-lucide="file-text" class="w-3 h-3"></i> PDF Mode</span>
+                             <span class="bg-mochi-dark text-white px-2 py-1 rounded shadow text-xs font-bold flex items-center gap-1"><i data-lucide="video" class="w-3 h-3"></i> Video Mode</span>
+                        </div>
+                        <div class="flex gap-2">
+                             <div class="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold flex items-center gap-1 animate-pulse">
+                                <i data-lucide="timer" class="w-3 h-3"></i> 24:59
+                             </div>
+                             <div class="bg-green-100 text-green-600 px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
+                                <i data-lucide="eye" class="w-3 h-3"></i> Tracking Active
+                             </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="relative w-full aspect-video bg-gray-800 rounded-xl overflow-hidden shadow-lg border-4 border-gray-200">
+                        
+                        <div id="video-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-20 hidden">
+                             <div class="text-white text-xl font-bold mb-4 animate-bounce">🔒 Content Locked!</div>
+                             <div class="bg-white text-gray-800 px-4 py-2 rounded-lg font-bold text-sm">Complete tasks to resume</div>
+                        </div>
+                        
+                        <div id="distraction-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-red-500/90 z-30 hidden">
+                             <i data-lucide="siren" class="w-12 h-12 text-white animate-spin mb-2"></i>
+                             <div class="text-white text-2xl font-bold">FOCUS!</div>
+                             <div class="text-white text-sm">Head Tracking detected distraction</div>
+                        </div>
+                        
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <i id="play-icon" data-lucide="play-circle" class="w-16 h-16 text-white opacity-50"></i>
+                        </div>
+                        
+                        
+                        <div class="absolute bottom-0 left-0 w-full h-2 bg-gray-600">
+                            <div id="progress-bar" class="h-full bg-red-500 w-0 transition-all duration-[100ms] ease-linear"></div>
+                        </div>
+                        
+                        <div class="absolute bottom-0 left-[25%] w-1 h-3 bg-yellow-400 -translate-y-1/2 z-10" title="25% Stop"></div>
+                    </div>
+
+                    
+                    <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 h-64 relative overflow-hidden">
+                        
+                        
+                        <div id="step-0" class="sim-step active flex-col items-center justify-center h-full text-center">
+                            <i data-lucide="youtube" class="w-10 h-10 text-red-500 mb-2"></i>
+                            <h4 class="font-bold text-gray-700">Learning in Progress...</h4>
+                            <p class="text-sm text-gray-500">AI is monitoring your attention.</p>
+                        </div>
+
+                        
+                        <div id="step-distract" class="sim-step flex-col items-center justify-center h-full text-center">
+                            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-2 animate-bounce">
+                                <i data-lucide="eye-off" class="w-8 h-8 text-red-500"></i>
+                            </div>
+                            <h4 class="font-bold text-red-600">Distraction Detected!</h4>
+                            <p class="text-sm text-gray-500">Simulating head turning away...</p>
+                        </div>
+
+                        
+                        <div id="step-1" class="sim-step flex-col items-center justify-center h-full text-center bg-white p-6 rounded-xl border-2 border-dashed border-mochi-light">
+                            <div class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-bold mb-3">Task 1/3: Flashcards</div>
+                            <p class="text-gray-600 italic mb-4 font-serif text-lg">"Define Photosynthesis"</p>
+                            <div class="flex gap-2">
+                                <button class="px-4 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-bold hover:bg-green-200">I know it</button>
+                                <button class="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-bold hover:bg-red-200">Forgot</button>
+                            </div>
+                        </div>
+
+                        
+                        <div id="step-2" class="sim-step flex-col items-center justify-center h-full text-center">
+                            <div class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold mb-3">Task 2/3: Feynman Mode</div>
+                            <p class="text-sm text-gray-500 mb-3">Explain the concept to AI simply:</p>
+                            <div class="w-full bg-white p-3 rounded border border-gray-300 text-left text-xs text-gray-400">
+                                <span class="text-gray-800">It is when plants use sunlight to...</span><span class="animate-pulse">|</span>
+                            </div>
+                        </div>
+
+                        
+                        <div id="step-3" class="sim-step flex-col items-center justify-center h-full text-center">
+                             <div class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-xs font-bold mb-3">Task 3/3: Quiz</div>
+                            <h4 class="font-bold text-gray-800 mb-2">Score: 3/5</h4>
+                            <div class="flex gap-2 mb-2">
+                                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-gray-300"></div>
+                                <div class="w-3 h-3 rounded-full bg-gray-300"></div>
+                            </div>
+                            <button class="bg-mochi-dark text-white px-6 py-2 rounded-full font-bold shadow-lg animate-pulse scale-105">Unlock Next Segment</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+           
+            const progress = document.getElementById('progress-bar');
+            
+           
+            progress.style.transition = 'width 2s linear';
+            setTimeout(() => { progress.style.width = '10%'; }, 100);
+
+           
+            setTimeout(() => {
+                document.getElementById('distraction-overlay').classList.remove('hidden');
+                document.getElementById('distraction-overlay').classList.add('flex');
+                document.getElementById('step-0').classList.remove('active');
+                document.getElementById('step-distract').classList.add('active');
+            }, 2000);
+
+           
+            setTimeout(() => {
+                document.getElementById('distraction-overlay').classList.add('hidden');
+                document.getElementById('distraction-overlay').classList.remove('flex');
+                document.getElementById('step-distract').classList.remove('active');
+                document.getElementById('step-0').classList.add('active');
+                progress.style.transition = 'width 2s linear';
+                progress.style.width = '25%';
+            }, 4000);
+
+           
+            setTimeout(() => {
+                document.getElementById('video-overlay').classList.remove('hidden');
+                document.getElementById('video-overlay').classList.add('flex');
+                document.getElementById('step-0').classList.remove('active');
+                document.getElementById('step-1').classList.add('active');
+            }, 6000);
+
+           
+            setTimeout(() => {
+                document.getElementById('step-1').classList.remove('active');
+                document.getElementById('step-2').classList.add('active'); 
+            }, 9000);
+
+           
+            setTimeout(() => {
+                document.getElementById('step-2').classList.remove('active');
+                document.getElementById('step-3').classList.add('active'); 
+            }, 12000);
+            
+            lucide.createIcons();
+        }
+
+        function renderSpacedSimulation() {
+             modalContent.innerHTML = `
+                <div class="text-center mb-6">
+                    <h3 class="text-3xl font-bold text-mochi-dark mb-2">Spaced Repetition</h3>
+                    <p class="text-gray-500">We track the forgetting curve and ping you.</p>
+                </div>
+
+                <div class="relative bg-white rounded-xl border border-gray-200 p-6 h-80 flex items-center justify-center overflow-hidden">
+                    
+                    <div class="grid grid-cols-7 gap-2 w-full opacity-20 absolute inset-0 p-4">
+                        ${Array(28).fill(0).map((_, i) => `<div class="aspect-square bg-gray-200 rounded-md"></div>`).join('')}
+                    </div>
+
+                    
+                    <div id="notif-1" class="absolute top-10 right-4 bg-white border-l-4 border-blue-500 shadow-lg p-4 rounded-r-lg w-64 transform translate-x-full transition-transform duration-500 flex items-start gap-3">
+                         <i data-lucide="bell" class="w-5 h-5 text-blue-500 shrink-0"></i>
+                         <div>
+                            <h5 class="font-bold text-gray-800 text-sm">Day 2 Reminder</h5>
+                            <p class="text-xs text-gray-500">Time to review "Quantum Physics" before you forget!</p>
+                         </div>
+                    </div>
+
+                    
+                    <div id="notif-2" class="absolute top-32 right-4 bg-white border-l-4 border-red-500 shadow-lg p-4 rounded-r-lg w-64 transform translate-x-full transition-transform duration-500 flex items-start gap-3">
+                         <i data-lucide="bell" class="w-5 h-5 text-red-500 shrink-0"></i>
+                         <div>
+                            <h5 class="font-bold text-gray-800 text-sm">Day 7 Urgent</h5>
+                            <p class="text-xs text-gray-500">Last revision of "French Revolution"!</p>
+                         </div>
+                    </div>
+
+                    
+                    <div class="relative z-10 w-32 h-64 bg-gray-900 rounded-3xl border-4 border-gray-700 shadow-2xl flex flex-col items-center pt-4">
+                         <div class="w-10 h-1 bg-gray-700 rounded-full mb-4"></div>
+                         <div class="w-full px-2 space-y-2">
+                             <div id="phone-notif-1" class="bg-gray-800 p-2 rounded text-[10px] text-white opacity-0 transition-opacity duration-300">🔔 Review: Physics</div>
+                             <div id="phone-notif-2" class="bg-gray-800 p-2 rounded text-[10px] text-white opacity-0 transition-opacity duration-300">🔔 Review: History</div>
+                         </div>
+                    </div>
+                </div>
+            `;
+            
+            lucide.createIcons();
+
+            setTimeout(() => {
+                document.getElementById('notif-1').classList.remove('translate-x-full');
+                document.getElementById('phone-notif-1').classList.remove('opacity-0');
+            }, 500);
+
+            setTimeout(() => {
+                document.getElementById('notif-1').classList.add('translate-x-full');
+            }, 2500);
+
+             setTimeout(() => {
+                document.getElementById('notif-2').classList.remove('translate-x-full');
+                document.getElementById('phone-notif-2').classList.remove('opacity-0');
+            }, 3000);
+        }
+
+        function renderZoneSimulation() {
+            modalContent.innerHTML = `
+                <div class="text-center mb-6">
+                    <h3 class="text-3xl font-bold text-mochi-dark mb-2">Memorization Zone</h3>
+                    <p class="text-gray-500">Transform study material into 5 different active-learning assets.</p>
+                </div>
+
+                <div class="flex flex-col items-center">
+                    
+                    <div class="w-full max-w-lg bg-white border border-gray-300 rounded-xl p-3 mb-6 shadow-sm flex items-center gap-3">
+                        <div class="w-8 h-8 bg-gray-100 rounded flex items-center justify-center"><i data-lucide="file-text" class="w-4 h-4 text-gray-500"></i></div>
+                        <div class="text-xs text-gray-400 flex-grow">Pasted: "History of Roman Empire..."</div>
+                        <button class="bg-purple-500 text-white px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-purple-600">Generate All</button>
+                    </div>
+
+                    
+                    <div class="relative w-full max-w-lg h-64">
+                        
+                        
+                        <div id="zone-1" class="absolute inset-0 bg-yellow-50 rounded-2xl border-2 border-yellow-100 flex flex-col items-center justify-center p-6 transition-all duration-500 opacity-100 scale-100">
+                            <div class="absolute top-4 right-4 text-yellow-600 font-bold text-xs">1/5</div>
+                            <div class="w-12 h-12 bg-yellow-200 rounded-full flex items-center justify-center mb-4">
+                                <i data-lucide="notebook-pen" class="w-6 h-6 text-yellow-700"></i>
+                            </div>
+                            <h4 class="font-bold text-yellow-800">Smart Notes</h4>
+                            <div class="bg-white p-3 rounded-lg shadow-sm mt-3 w-32 text-center text-[10px] text-gray-400 space-y-1">
+                                <div class="w-full h-1 bg-gray-200 rounded"></div>
+                                <div class="w-full h-1 bg-gray-200 rounded"></div>
+                                <div class="w-2/3 h-1 bg-gray-200 rounded"></div>
+                            </div>
+                        </div>
+
+                         
+                        <div id="zone-2" class="absolute inset-0 bg-blue-50 rounded-2xl border-2 border-blue-100 flex flex-col items-center justify-center p-6 transition-all duration-500 opacity-0 scale-90">
+                            <div class="absolute top-4 right-4 text-blue-600 font-bold text-xs">2/5</div>
+                             <div class="w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center mb-4">
+                                <i data-lucide="presentation" class="w-6 h-6 text-blue-700"></i>
+                            </div>
+                            <h4 class="font-bold text-blue-800">Slides Deck</h4>
+                            <div class="bg-white border-2 border-gray-200 w-32 h-20 mt-2 rounded flex items-center justify-center shadow-sm">
+                                <div class="text-[8px] text-gray-400 font-bold">The Empire</div>
+                            </div>
+                        </div>
+
+                        
+                        <div id="zone-3" class="absolute inset-0 bg-indigo-50 rounded-2xl border-2 border-indigo-100 flex flex-col items-center justify-center p-6 transition-all duration-500 opacity-0 scale-90">
+                            <div class="absolute top-4 right-4 text-indigo-600 font-bold text-xs">3/5</div>
+                             <div class="w-12 h-12 bg-indigo-200 rounded-full flex items-center justify-center mb-4">
+                                <i data-lucide="network" class="w-6 h-6 text-indigo-700"></i>
+                            </div>
+                            <h4 class="font-bold text-indigo-800">Mind Map</h4>
+                            <div class="flex gap-1 mt-4">
+                                <div class="w-8 h-8 rounded-full border border-indigo-300 bg-white"></div>
+                                <div class="w-4 h-0.5 bg-indigo-300 self-center"></div>
+                                <div class="w-8 h-8 rounded-full border border-indigo-300 bg-white"></div>
+                            </div>
+                        </div>
+
+                         
+                        <div id="zone-4" class="absolute inset-0 bg-pink-50 rounded-2xl border-2 border-pink-100 flex flex-col items-center justify-center p-6 transition-all duration-500 opacity-0 scale-90">
+                            <div class="absolute top-4 right-4 text-pink-600 font-bold text-xs">4/5</div>
+                            <div class="w-12 h-12 bg-pink-200 rounded-full flex items-center justify-center mb-4">
+                                <i data-lucide="music" class="w-6 h-6 text-pink-700"></i>
+                            </div>
+                            <h4 class="font-bold text-pink-800">Mnemonic Song</h4>
+                            <p class="text-xs text-pink-500 italic mt-2">"🎵 Julius Caesar, year 44... 🎵"</p>
+                        </div>
+
+                        
+                        <div id="zone-5" class="absolute inset-0 bg-green-50 rounded-2xl border-2 border-green-100 flex flex-col items-center justify-center p-6 transition-all duration-500 opacity-0 scale-90">
+                            <div class="absolute top-4 right-4 text-green-600 font-bold text-xs">5/5</div>
+                             <div class="w-12 h-12 bg-green-200 rounded-full flex items-center justify-center mb-4">
+                                <i data-lucide="joystick" class="w-6 h-6 text-green-700"></i>
+                            </div>
+                            <h4 class="font-bold text-green-800">Mini Game</h4>
+                            <button class="mt-4 bg-green-500 text-white px-4 py-1 rounded-full text-xs font-bold shadow-lg hover:scale-105 transition-transform">Play Now</button>
+                        </div>
+
+                    </div>
+                    
+                    <div class="flex gap-2 mt-4">
+                        <div class="w-2 h-2 rounded-full bg-gray-400" id="dot-1"></div>
+                        <div class="w-2 h-2 rounded-full bg-gray-200" id="dot-2"></div>
+                        <div class="w-2 h-2 rounded-full bg-gray-200" id="dot-3"></div>
+                        <div class="w-2 h-2 rounded-full bg-gray-200" id="dot-4"></div>
+                        <div class="w-2 h-2 rounded-full bg-gray-200" id="dot-5"></div>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+
+            let currentSlide = 1;
+            const totalSlides = 5;
+            
+           
+            const updateDots = (index) => {
+                for(let i=1; i<=totalSlides; i++) {
+                    document.getElementById(`dot-${i}`).className = i === index ? "w-2 h-2 rounded-full bg-gray-400" : "w-2 h-2 rounded-full bg-gray-200";
+                }
+            };
+            updateDots(1);
+
+            simulationInterval = setInterval(() => {
+               
+                document.getElementById(`zone-${currentSlide}`).classList.add('opacity-0', 'scale-90');
+                document.getElementById(`zone-${currentSlide}`).classList.remove('opacity-100', 'scale-100');
+                
+               
+                currentSlide = currentSlide === totalSlides ? 1 : currentSlide + 1;
+                
+               
+                document.getElementById(`zone-${currentSlide}`).classList.remove('opacity-0', 'scale-90');
+                document.getElementById(`zone-${currentSlide}`).classList.add('opacity-100', 'scale-100');
+                
+                updateDots(currentSlide);
+            }, 2500);
+        }
+    </script>
+</body>
+</html>

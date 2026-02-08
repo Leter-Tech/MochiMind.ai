@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memorization Zone - MochiMind.ai</title>
+    <link rel="icon" href="logo.png">
+    
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mochi: { bg: '#fdfaec', light: '#f7b4a9', dark: '#ec7469', text: '#4a4a4a', white: '#ffffff' }
+                    },
+                    fontFamily: { heading: ['Fredoka', 'sans-serif'], body: ['Nunito', 'sans-serif'] },
+                    animation: { 
+                        'pulse-slow': 'pulse 3s infinite',
+                        'spin-slow': 'spin 3s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #fdfaec; color: #4a4a4a; font-family: 'Nunito', sans-serif; }
+        h1, h2, h3, h4 { font-family: 'Fredoka', sans-serif; }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 2px solid white;
+            border-radius: 2rem;
+            box-shadow: 0 10px 30px rgba(236, 116, 105, 0.1);
+        }
+
+        .tool-card {
+            background: white;
+            border: 2px solid transparent;
+            border-radius: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tool-card:hover {
+            transform: translateY(-5px);
+            border-color: #f7b4a9;
+            box-shadow: 0 15px 30px rgba(236, 116, 105, 0.15);
+        }
+
+        .tool-card.selected {
+            border-color: #ec7469;
+            background-color: #fffbfc;
+            box-shadow: 0 0 0 4px rgba(236, 116, 105, 0.1);
+        }
+
+        .btn-primary {
+            background-color: #ec7469;
+            color: white;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #ff8a80;
+            transform: translateY(-2px);
+        }
+        .btn-primary:disabled {
+            background-color: #d1d5db;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .credit-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 0.25rem 0.5rem;
+            border-radius: 999px;
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .credit-badge.low { background: #fee2e2; color: #ef4444; }
+        .credit-badge.good { background: #dcfce7; color: #16a34a; }
+
+        
+        .loader-dots div {
+            animation-timing-function: cubic-bezier(0, 1, 1, 0);
+        }
+        .loader-dots div:nth-child(1) { left: 8px; animation: loader-dots1 0.6s infinite; }
+        .loader-dots div:nth-child(2) { left: 8px; animation: loader-dots2 0.6s infinite; }
+        .loader-dots div:nth-child(3) { left: 32px; animation: loader-dots2 0.6s infinite; }
+        .loader-dots div:nth-child(4) { left: 56px; animation: loader-dots3 0.6s infinite; }
+        @keyframes loader-dots1 { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        @keyframes loader-dots3 { 0% { transform: scale(1); } 100% { transform: scale(0); } }
+        @keyframes loader-dots2 { 0% { transform: translate(0, 0); } 100% { transform: translate(24px, 0); } }
+
+        
+        .music-player .lyrics-panel::-webkit-scrollbar { width: 6px; }
+        .music-player .lyrics-panel::-webkit-scrollbar-track { background: rgba(236, 116, 105, 0.08); border-radius: 3px; }
+        .music-player .lyrics-panel::-webkit-scrollbar-thumb { background: #f7b4a9; border-radius: 3px; }
+        #player-seek::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #ec7469; cursor: pointer; }
+        #player-seek::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #ec7469; cursor: pointer; border: 0; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    
+    <div id="auth-loading" class="fixed inset-0 bg-mochi-bg z-[100] flex items-center justify-center">
+        <div class="text-center">
+             <div class="w-16 h-16 border-4 border-mochi-dark border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+             <p class="font-heading text-xl text-mochi-dark">Preparing the Zone...</p>
+        </div>
+    </div>
+
+    
+    <nav class="bg-white border-b border-mochi-light/30 px-6 py-3 flex justify-between items-center z-40 sticky top-0 h-20">
+        <div class="flex items-center gap-4">
+            <a href="app.html" class="w-10 h-10 block hover:scale-105 transition-transform">
+                <img src="logo.png" alt="Logo" class="w-full h-full object-contain">
+            </a>
+            <div>
+                <h1 class="text-xl font-bold text-mochi-dark">Memorization Zone</h1>
+                <p class="text-xs text-gray-400 font-bold">Transform boring study into magic.</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+             <a href="app.html" class="text-sm font-bold text-gray-500 hover:text-mochi-dark flex items-center gap-1">
+                <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+            </a>
+            <div id="user-avatar" class="w-8 h-8 rounded-full bg-gray-200"></div>
+        </div>
+    </nav>
+
+    
+    <main class="flex-grow container mx-auto p-6 max-w-7xl">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full">
+            
+            
+            <div class="lg:col-span-4 space-y-4">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 px-2">Choose Your Medium</h2>
+                
+                <div class="grid grid-cols-2 lg:grid-cols-1 gap-4">
+                    
+                    <div onclick="selectTool('notes')" id="card-notes" class="tool-card p-4 flex items-center gap-4">
+                        <div class="bg-yellow-100 p-3 rounded-xl text-yellow-600"><i data-lucide="notebook-pen" class="w-6 h-6"></i></div>
+                        <div>
+                            <h3 class="font-bold text-gray-700">Notes AI</h3>
+                            <p class="text-xs text-gray-400">Vertical, styled, rich.</p>
+                        </div>
+                        <div id="credit-notes" class="credit-badge">2/2</div>
+                    </div>
+
+                    <div onclick="selectTool('slides')" id="card-slides" class="tool-card p-4 flex items-center gap-4">
+                        <div class="bg-blue-100 p-3 rounded-xl text-blue-600"><i data-lucide="presentation" class="w-6 h-6"></i></div>
+                        <div>
+                            <h3 class="font-bold text-gray-700">Slides AI</h3>
+                            <p class="text-xs text-gray-400">Comprehensive presentations.</p>
+                        </div>
+                        <div id="credit-slides" class="credit-badge">2/2</div>
+                    </div>
+
+                    <div onclick="selectTool('mindmap')" id="card-mindmap" class="tool-card p-4 flex items-center gap-4">
+                        <div class="bg-green-100 p-3 rounded-xl text-green-600"><i data-lucide="network" class="w-6 h-6"></i></div>
+                        <div>
+                            <h3 class="font-bold text-gray-700">Mind Map AI</h3>
+                            <p class="text-xs text-gray-400">Connective visualization.</p>
+                        </div>
+                        <div id="credit-mindmap" class="credit-badge">2/2</div>
+                    </div>
+
+                    <div onclick="selectTool('cheatsheet')" id="card-cheatsheet" class="tool-card p-4 flex items-center gap-4">
+                        <div class="bg-red-100 p-3 rounded-xl text-red-600"><i data-lucide="file-warning" class="w-6 h-6"></i></div>
+                        <div>
+                            <h3 class="font-bold text-gray-700">Cheat Sheet AI</h3>
+                            <p class="text-xs text-gray-400">Compact A4 summary.</p>
+                        </div>
+                        <div id="credit-cheatsheet" class="credit-badge">2/2</div>
+                    </div>
+
+                    <div onclick="selectTool('sim')" id="card-sim" class="tool-card p-4 flex items-center gap-4">
+                        <div class="bg-purple-100 p-3 rounded-xl text-purple-600"><i data-lucide="gamepad-2" class="w-6 h-6"></i></div>
+                        <div>
+                            <h3 class="font-bold text-gray-700">Simulation AI</h3>
+                            <p class="text-xs text-gray-400">Interactive mini-games.</p>
+                        </div>
+                        <div id="credit-sim" class="credit-badge">2/2</div>
+                    </div>
+
+                    <div onclick="selectTool('song')" id="card-song" class="tool-card p-4 flex items-center gap-4">
+                        <div class="bg-pink-100 p-3 rounded-xl text-pink-600"><i data-lucide="music" class="w-6 h-6"></i></div>
+                        <div>
+                            <h3 class="font-bold text-gray-700">Music AI</h3>
+                            <p class="text-xs text-gray-400">Turn boring study into songs.</p>
+                        </div>
+                        <div id="credit-song" class="credit-badge">2/2</div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="lg:col-span-8">
+                <div class="glass-panel p-8 h-full flex flex-col relative">
+                    
+                    <div id="workspace-placeholder" class="flex flex-col items-center justify-center h-full text-center opacity-50">
+                        <i data-lucide="sparkles" class="w-16 h-16 mb-4 text-mochi-dark"></i>
+                        <h2 class="text-2xl font-bold text-gray-400">Select a tool to begin</h2>
+                    </div>
+
+                    
+                    <div id="workspace-form" class="hidden flex-col h-full">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 id="tool-title" class="text-3xl font-bold text-gray-800">Generate Notes</h2>
+                            <div id="tool-icon-large" class="bg-yellow-100 p-3 rounded-2xl text-yellow-600">
+                                <i data-lucide="notebook-pen" class="w-8 h-8"></i>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 flex-grow">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-600 mb-2">Topic / Content</label>
+                                <textarea id="input-content" class="w-full h-48 p-4 bg-white border border-gray-200 rounded-2xl focus:border-mochi-dark outline-none resize-none" placeholder="Paste your study material here..."></textarea>
+                            </div>
+
+                            
+                            <div id="music-options" class="hidden">
+                                <label class="block text-sm font-bold text-gray-600 mb-2">Music Style</label>
+                                <select id="music-style" class="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-mochi-dark">
+                                    <option value="Lo-fi Hip Hop">Lo-fi Hip Hop</option>
+                                    <option value="Upbeat Pop">Upbeat Pop</option>
+                                    <option value="Classical Piano">Classical Piano</option>
+                                    <option value="Epic Orchestral">Epic Orchestral</option>
+                                    <option value="Acoustic Folk">Acoustic Folk</option>
+                                    <option value="Synthwave">Synthwave</option>
+                                    <option value="Jazz">Jazz</option>
+                                    <option value="Rap">Educational Rap</option>
+                                </select>
+                            </div>
+
+                            
+                            <div>
+                                <label class="block text-sm font-bold text-gray-600 mb-2">Specific Requirements</label>
+                                <input type="text" id="input-reqs" class="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none focus:border-mochi-dark" placeholder="e.g., Focus on dates, include definitions...">
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <button onclick="generateContent()" id="generate-btn" class="w-full btn-primary py-4 rounded-xl font-bold text-xl shadow-lg flex items-center justify-center gap-3">
+                                <i data-lucide="wand-2"></i> Generate Asset
+                            </button>
+                            <p class="text-center text-xs text-gray-400 mt-2 font-bold">Consumes 1 Credit</p>
+                        </div>
+                    </div>
+
+                    
+                    <div id="loading-state" class="hidden absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center rounded-[2rem]">
+                        <div class="loader-dots relative w-20 h-5 mb-4">
+                            <div class="absolute top-0 w-3 h-3 rounded-full bg-mochi-dark"></div>
+                            <div class="absolute top-0 w-3 h-3 rounded-full bg-mochi-dark"></div>
+                            <div class="absolute top-0 w-3 h-3 rounded-full bg-mochi-dark"></div>
+                            <div class="absolute top-0 w-3 h-3 rounded-full bg-mochi-dark"></div>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 animate-pulse">Designing...</h3>
+                        <p id="loading-text" class="text-sm text-gray-500 mt-2">AI is structuring your data</p>
+                    </div>
+
+                    
+                    <div id="result-state" class="hidden absolute inset-0 bg-white/95 z-20 flex flex-col items-center justify-center rounded-[2rem] text-center p-10">
+                        <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6 animate-bounce">
+                            <i data-lucide="check" class="w-12 h-12 text-green-600"></i>
+                        </div>
+                        <h3 class="text-3xl font-bold text-gray-800 mb-2">It's Ready!</h3>
+                        <p class="text-gray-500 mb-8">Your content has been generated successfully.</p>
+                        
+                        <div class="flex gap-4">
+                            <button onclick="resetWorkspace()" class="px-6 py-3 border-2 border-gray-200 rounded-xl font-bold text-gray-500 hover:bg-gray-50">Create Another</button>
+                            <button id="open-result-btn" class="px-8 py-3 bg-mochi-dark text-white rounded-xl font-bold shadow-lg hover:bg-red-400 flex items-center gap-2">
+                                <i data-lucide="external-link"></i> Open in New Tab
+                            </button>
+                        </div>
+                        
+                        
+                        <div id="audio-player-container" class="hidden mt-6 w-full max-w-2xl mx-auto">
+                            <div class="music-player glass-panel overflow-hidden">
+                                <div class="p-6 pb-4">
+                                    <h4 id="player-song-title" class="font-heading text-xl font-bold text-mochi-dark text-center mb-1">Study Song</h4>
+                                    <p class="text-xs text-gray-400 text-center mb-4">MochiMind Memorization</p>
+                                    <div class="flex items-center justify-center gap-4 mb-4">
+                                        <button type="button" id="player-play-pause" class="w-14 h-14 rounded-full bg-mochi-dark text-white flex items-center justify-center hover:bg-mochi-dark/90 shadow-lg transition-all hover:scale-105" aria-label="Play / Pause">
+                                            <i data-lucide="play" id="player-play-icon" class="w-7 h-7 ml-0.5"></i>
+                                            <i data-lucide="pause" id="player-pause-icon" class="w-7 h-7 hidden"></i>
+                                        </button>
+                                    </div>
+                                    <div class="flex items-center gap-2 text-sm text-gray-500">
+                                        <span id="player-time-current">0:00</span>
+                                        <input type="range" id="player-seek" class="flex-1 h-2 rounded-full appearance-none bg-gray-200 accent-mochi-dark" min="0" max="100" value="0">
+                                        <span id="player-time-total">0:00</span>
+                                    </div>
+                                </div>
+                                <div class="lyrics-panel bg-mochi-bg/60 border-t border-mochi-light/30">
+                                    <p class="text-xs font-bold text-gray-500 uppercase tracking-wider px-6 pt-4 pb-2">Lyrics</p>
+                                    <div id="player-lyrics" class="px-6 pb-6 max-h-64 overflow-y-auto text-gray-700 leading-relaxed whitespace-pre-wrap font-body text-center"></div>
+                                </div>
+                            </div>
+                            <audio id="generated-audio" class="hidden"></audio>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+       
+        const firebaseConfig = {
+REMOVED
+        };
+
+        const GEMINI_API_KEY = "REMOVED";
+        const SUNO_API_KEY = "REMOVED";
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let currentUser = null;
+        let currentTool = null;
+        let userCredits = {};
+        const MAX_CREDITS = 2;
+
+       
+        onAuthStateChanged(auth, (user) => {
+            document.getElementById('auth-loading').classList.add('hidden');
+            if (user) {
+                currentUser = user;
+                document.getElementById('user-avatar').innerHTML = `<img src="${user.photoURL}" class="w-full h-full rounded-full">`;
+                fetchCredits();
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+       
+        async function fetchCredits() {
+            const snapshot = await get(child(ref(db), `users/${currentUser.uid}/credits`));
+            if (snapshot.exists()) {
+                userCredits = snapshot.val();
+            } else {
+               
+                userCredits = { notes: 0, slides: 0, mindmap: 0, cheatsheet: 0, sim: 0, song: 0 };
+                await set(ref(db, `users/${currentUser.uid}/credits`), userCredits);
+            }
+            updateCreditUI();
+        }
+
+        function updateCreditUI() {
+            const tools = ['notes', 'slides', 'mindmap', 'cheatsheet', 'sim', 'song'];
+            tools.forEach(t => {
+                const used = userCredits[t] || 0;
+                const remaining = MAX_CREDITS - used;
+                const badge = document.getElementById(`credit-${t}`);
+                badge.innerText = `${remaining}/${MAX_CREDITS}`;
+                badge.className = `credit-badge ${remaining > 0 ? 'good' : 'low'}`;
+            });
+        }
+
+       
+        window.selectTool = (tool) => {
+            currentTool = tool;
+            document.querySelectorAll('.tool-card').forEach(el => el.classList.remove('selected'));
+            document.getElementById(`card-${tool}`).classList.add('selected');
+            
+            document.getElementById('workspace-placeholder').classList.add('hidden');
+            document.getElementById('workspace-form').classList.remove('hidden');
+            document.getElementById('workspace-form').classList.add('flex');
+            
+           
+            const titles = {
+                notes: "Generate Notes",
+                slides: "Generate Slides",
+                mindmap: "Create Mind Map",
+                cheatsheet: "Build Cheat Sheet",
+                sim: "Design Simulation",
+                song: "Compose Song"
+            };
+            document.getElementById('tool-title').innerText = titles[tool];
+            
+           
+            if (tool === 'song') document.getElementById('music-options').classList.remove('hidden');
+            else document.getElementById('music-options').classList.add('hidden');
+
+           
+            const btn = document.getElementById('generate-btn');
+            const used = userCredits[tool] || 0;
+            if (used >= MAX_CREDITS) {
+                btn.disabled = true;
+                btn.innerText = "No Credits Left";
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="wand-2"></i> Generate Asset`;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        };
+
+        window.resetWorkspace = () => {
+            const audio = document.getElementById('generated-audio');
+            if (audio) { audio.pause(); audio.removeAttribute('src'); }
+            document.getElementById('result-state').classList.add('hidden');
+            document.getElementById('workspace-form').classList.remove('hidden');
+            document.getElementById('input-content').value = "";
+            document.getElementById('input-reqs').value = "";
+            document.getElementById('audio-player-container').classList.add('hidden');
+        };
+
+       
+        window.generateContent = async () => {
+            const content = document.getElementById('input-content').value;
+            const reqs = document.getElementById('input-reqs').value;
+            
+            if (!content) { alert("Please enter content!"); return; }
+
+           
+            document.getElementById('workspace-form').classList.add('hidden');
+            document.getElementById('loading-state').classList.remove('hidden');
+            
+            try {
+                let result = null;
+                
+                if (currentTool === 'song') {
+                    result = await handleSongGeneration(content, reqs);
+                } else {
+                    result = await handleTextGeneration(currentTool, content, reqs);
+                }
+
+               
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('result-state').classList.remove('hidden');
+                
+               
+                const openBtn = document.getElementById('open-result-btn');
+                
+                if (currentTool === 'song') {
+                    openBtn.style.display = 'none';
+                    showMusicPlayer(result.audioUrl, result.lyrics, result.title);
+                } else {
+                    openBtn.style.display = 'flex';
+                    openBtn.onclick = () => {
+                        const blob = new Blob([result], { type: 'text/html' });
+                        const url = URL.createObjectURL(blob);
+                        window.open(url, '_blank');
+                    };
+                }
+
+               
+                userCredits[currentTool] = (userCredits[currentTool] || 0) + 1;
+                await update(ref(db, `users/${currentUser.uid}/credits`), userCredits);
+                updateCreditUI();
+
+            } catch (error) {
+                console.error(error);
+                alert("Generation Failed: " + error.message);
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('workspace-form').classList.remove('hidden');
+            }
+        };
+
+       
+        async function callGemini(prompt) {
+           
+           
+            const modelUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+            
+            const response = await fetch(modelUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            const data = await response.json();
+            if (!data.candidates) throw new Error("AI Busy. Try again.");
+            let text = data.candidates[0].content.parts[0].text;
+            
+           
+            return text.replace(/^```html|^```css|^```javascript|^```mermaid|^```/gm, '').replace(/```$/gm, '');
+        }
+
+        async function handleTextGeneration(tool, content, reqs) {
+            let prompt = "";
+            const baseStyle = `Use a beautiful, modern design. Use Google Fonts (Inter, Playfair Display). Use FontAwesome for icons. No placeholder images, use CSS shapes or icons.`;
+
+            if (tool === 'notes') {
+                prompt = `Create a single-file HTML/CSS/JS highly designed vertical study note for the following content. ${baseStyle}. Use LaTeX for math (MathJax). \n\nContent: ${content}\nReqs: ${reqs}`;
+            } 
+            else if (tool === 'slides') {
+                prompt = `Create a single-file HTML using Reveal.js for the following content. Follow this exact structure but adapt the content: 
+                
+                <!DOCTYPE html>... (Template structure from user prompt) ...
+                
+                Ensure you use the 'night' theme logic and the custom CSS provided in the example. No external images. Use FontAwesome icons. \n\nContent: ${content}`;
+            }
+            else if (tool === 'mindmap') {
+               
+                const mermaidCode = await callGemini(`Generate a Mermaid.js mindmap syntax for: ${content}. Follow strict rules: No subgraphs, unique node IDs, no abbreviations. Use the 'mindmap' diagram type.`);
+                
+                return `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Mind Map</title>
+                        <script type="module">
+                            import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+                            mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+                        <\/script>
+                    </head>
+                    <body style="background:#fdfaec; display:flex; justify-content:center; align-items:center; min-height:100vh;">
+                        <pre class="mermaid">
+                            ${mermaidCode}
+                        </pre>
+                    </body>
+                    </html>
+                `;
+            }
+            else if (tool === 'cheatsheet') {
+                prompt = `Create a single-file HTML Cheat Sheet. It must fit conceptually on a single A4 page. Use a multi-column masonry layout. High density information, small but readable fonts. Use icons. Theme: #ec7469 accent. \n\nContent: ${content}`;
+            }
+            else if (tool === 'sim') {
+                prompt = `Create a single-file HTML interactive simulation or mini-game to teach this concept: ${content}. Use JavaScript for interaction. Make it visual and fun. Style: ${baseStyle}`;
+            }
+
+            if (tool !== 'mindmap') {
+                return await callGemini(prompt);
+            }
+        }
+
+       
+        async function handleSongGeneration(content, reqs) {
+            document.getElementById('loading-text').innerText = "Writing Lyrics...";
+            
+           
+            const style = document.getElementById('music-style').value;
+            const lyricPrompt = `Write short, catchy, rhyming lyrics to help memorize this topic: ${content}. Style: ${style}. Format: just the lyrics text.`;
+            const lyrics = await callGemini(lyricPrompt);
+
+           
+            document.getElementById('loading-text').innerText = "Composing Audio (this may take 30–60s)...";
+            
+            const sunoUrl = "https://api.sunoapi.org/api/v1/generate";
+            const promptPrefix = `A ${style} study song. `;
+            const promptText = (promptPrefix + lyrics).substring(0, 500);
+            const sunoPayload = {
+                prompt: promptText,
+                customMode: false,
+                instrumental: false,
+                model: 'V4_5ALL',
+                callBackUrl: window.location.origin + '/callback'
+            };
+            
+            const res = await fetch(sunoUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${SUNO_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(sunoPayload)
+            });
+            
+            const data = await res.json();
+            
+            if (!res.ok) {
+                const errMsg = (data && (data.msg || data.message || data.error)) || res.statusText;
+                throw new Error("Suno API: " + errMsg);
+            }
+            if (data && data.code !== 200) {
+                throw new Error(data.msg || "Suno API error (code " + (data.code || "?") + ")");
+            }
+            const taskId = (data && data.data && data.data.taskId) || (data && data.taskId);
+            if (!taskId) {
+                const hint = data && data.msg ? data.msg : (data ? JSON.stringify(data).slice(0, 200) : "No response body");
+                throw new Error("Music generation failed to start: no taskId returned. " + hint);
+            }
+            
+            const { audioUrl, title } = await pollSunoTask(taskId);
+            return { audioUrl, lyrics, title: title || "MochiMind Study Song" };
+        }
+
+        async function pollSunoTask(taskId) {
+            const recordInfoUrl = `https://api.sunoapi.org/api/v1/generate/record-info?taskId=${taskId}`;
+            const maxAttempts = 24;
+            const pollInterval = 5000;
+            
+            for (let i = 0; i < maxAttempts; i++) {
+                await new Promise(r => setTimeout(r, pollInterval));
+                
+                const res = await fetch(recordInfoUrl, {
+                    headers: { 'Authorization': `Bearer ${SUNO_API_KEY}` }
+                });
+                const result = await res.json();
+                
+                if (result.data && result.data.status === 'SUCCESS') {
+                    const sunoData = result.data.response && result.data.response.sunoData;
+                    const list = sunoData || (result.data.response && result.data.response.data);
+                    const first = list && list[0];
+                    const url = first && (first.audioUrl || first.audio_url);
+                    if (url) {
+                        return {
+                            audioUrl: url,
+                            title: first.title || "MochiMind Study Song"
+                        };
+                    }
+                }
+                const status = result.data && result.data.status;
+                const inProgress = ['GENERATING', 'PENDING', 'TEXT_SUCCESS', 'FIRST_SUCCESS'];
+                if (status && !inProgress.includes(status)) {
+                    const errMsg = result.data.errorMessage || result.data.errorCode || status;
+                    throw new Error("Music generation failed: " + errMsg);
+                }
+            }
+            throw new Error("Music generation timed out. Try again later.");
+        }
+
+        function showMusicPlayer(audioUrl, lyrics, title) {
+            const container = document.getElementById('audio-player-container');
+            const audio = document.getElementById('generated-audio');
+            const playPauseBtn = document.getElementById('player-play-pause');
+            const playIcon = document.getElementById('player-play-icon');
+            const pauseIcon = document.getElementById('player-pause-icon');
+            const seek = document.getElementById('player-seek');
+            const timeCurrent = document.getElementById('player-time-current');
+            const timeTotal = document.getElementById('player-time-total');
+            const lyricsEl = document.getElementById('player-lyrics');
+            const titleEl = document.getElementById('player-song-title');
+
+            titleEl.textContent = title || "Study Song";
+            lyricsEl.textContent = lyrics || "No lyrics available.";
+            audio.src = audioUrl;
+            audio.load();
+            container.classList.remove('hidden');
+
+            function formatTime(s) {
+                const m = Math.floor(s / 60);
+                const sec = Math.floor(s % 60);
+                return m + ":" + (sec < 10 ? "0" : "") + sec;
+            }
+
+            function updateTime() {
+                timeCurrent.textContent = formatTime(audio.currentTime);
+                timeTotal.textContent = formatTime(audio.duration) || "0:00";
+                if (audio.duration && isFinite(audio.duration)) {
+                    seek.max = 100;
+                    seek.value = (audio.currentTime / audio.duration) * 100;
+                }
+            }
+
+            playPauseBtn.onclick = () => {
+                if (audio.paused) {
+                    audio.play();
+                    playIcon.classList.add('hidden');
+                    pauseIcon.classList.remove('hidden');
+                } else {
+                    audio.pause();
+                    playIcon.classList.remove('hidden');
+                    pauseIcon.classList.add('hidden');
+                }
+            };
+
+            audio.onplay = () => {
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+            };
+            audio.onpause = () => {
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+            };
+            audio.ontimeupdate = updateTime;
+            audio.onloadedmetadata = () => {
+                timeTotal.textContent = formatTime(audio.duration);
+                updateTime();
+            };
+            audio.onended = () => {
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                seek.value = 0;
+                timeCurrent.textContent = "0:00";
+            };
+
+            seek.oninput = () => {
+                const pct = parseFloat(seek.value);
+                if (audio.duration && isFinite(audio.duration)) {
+                    audio.currentTime = (pct / 100) * audio.duration;
+                }
+            };
+
+            updateTime();
+            lucide.createIcons();
+        }
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>
